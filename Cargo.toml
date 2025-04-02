@@ -1,0 +1,34 @@
+[package]
+name = "aegis"
+version = "0.1.0"
+edition = "2021"
+authors = ["Aegis Team"]
+description = "A secure, cross-platform agent framework"
+readme = "README.md"
+license = "MIT OR Apache-2.0"
+
+[workspace]
+members = [
+    "aegis",
+    "crates/aegis-core",
+    "crates/aegis-comms"
+]
+
+# Optimize for size in release mode (good for embedded/WASM targets)
+[profile.release]
+opt-level = "z"  # Optimize for size
+lto = true       # Enable Link Time Optimization
+codegen-units = 1 # Use a single codegen unit for better optimizations
+panic = "abort"   # Abort on panic for smaller code size
+
+# Development profile for improved compile times
+[profile.dev]
+opt-level = 0    # No optimizations for faster compile times
+debug = true     # Full debug info
+
+# Testing profile with some optimizations but still with debug info
+[profile.test]
+opt-level = 1    # Basic optimizations
+debug = true     # Keep debug info for better test diagnostics
+
+[dependencies]
