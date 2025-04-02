@@ -145,6 +145,102 @@ impl<S: MessageStream> FramedMessageStream<S> {
     }
 }
 
+/// Trait for stream wrappers that support framed messaging
+#[async_trait]
+pub trait StreamWrapper: Send + Sync + 'static {
+    /// Read a framed message
+    async fn read_framed_message(&mut self) -> FramingResult<Option<Bytes>>;
+    
+    /// Write a framed message
+    async fn write_framed_message(&mut self, msg: Bytes) -> FramingResult<()>;
+    
+    /// Get the peer address
+    fn peer_addr(&self) -> NetworkResult<std::net::SocketAddr>;
+    
+    /// Shutdown the stream
+    async fn shutdown(&mut self) -> NetworkResult<()>;
+}
+
+/// Create a new framed message stream from a boxed MessageStream
+pub fn wrap_boxed_stream(
+    stream: Box<dyn MessageStream>,
+) -> Box<dyn StreamWrapper> {
+    // We'll use a new trait to handle the wrapped stream
+    struct FramedWrapper {
+        stream: Box<dyn MessageStream>,
+        length_buffer: [u8; size_of::<u32>()],
+    }
+
+    impl FramedWrapper {
+        fn new(stream: Box<dyn MessageStream>) -> Self {
+            Self {
+                stream,
+                length_buffer: [0; size_of::<u32>()],
+            }
+        }
+    }
+
+    #[async_trait]
+    impl StreamWrapper for FramedWrapper {
+        async fn read_framed_message(&mut self) -> FramingResult<Option<Bytes>> {
+            // Read the length prefix (4 bytes in network byte order / big endian)
+            match self.stream.read_exact(&mut self.length_buffer).await {
+                Ok(()) => {}
+                Err(NetworkError::ConnectionClosed) => return Ok(None), // Clean shutdown
+                Err(e) => return Err(FramingError::Network(e)),
+            }
+
+            // Parse the length prefix
+            let length = match Cursor::new(&self.length_buffer).read_u32::<BigEndian>() {
+                Ok(len) => len,
+                Err(_) => return Err(FramingError::InvalidLengthPrefix),
+            };
+
+            // Check if message is too large
+            if length > MAX_MESSAGE_SIZE {
+                return Err(FramingError::MessageTooLarge(length));
+            }
+
+            // Read the message body
+            let mut buffer = BytesMut::with_capacity(length as usize);
+            buffer.resize(length as usize, 0);
+
+            match self.stream.read_exact(&mut buffer).await {
+                Ok(()) => Ok(Some(buffer.freeze())),
+                Err(NetworkError::ConnectionClosed) => Err(FramingError::UnexpectedEof),
+                Err(e) => Err(FramingError::Network(e)),
+            }
+        }
+
+        async fn write_framed_message(&mut self, msg: Bytes) -> FramingResult<()> {
+            let length = msg.len();
+            if length > MAX_MESSAGE_SIZE as usize {
+                return Err(FramingError::MessageTooLarge(length as u32));
+            }
+
+            // Write the length prefix (4 bytes in network byte order / big endian)
+            let mut length_bytes = [0u8; size_of::<u32>()];
+            BigEndian::write_u32(&mut length_bytes, length as u32);
+
+            // Write the length prefix and then the message
+            self.stream.write_all(&length_bytes).await?;
+            self.stream.write_all(&msg).await?;
+
+            Ok(())
+        }
+
+        fn peer_addr(&self) -> NetworkResult<std::net::SocketAddr> {
+            self.stream.peer_addr()
+        }
+
+        async fn shutdown(&mut self) -> NetworkResult<()> {
+            self.stream.shutdown().await
+        }
+    }
+
+    Box::new(FramedWrapper::new(stream))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

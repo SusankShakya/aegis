@@ -9,7 +9,6 @@ license = "MIT OR Apache-2.0"
 
 [workspace]
 members = [
-    "aegis",
     "crates/aegis-core",
     "crates/aegis-comms"
 ]
@@ -40,3 +39,9 @@ aegis-comms = { path = "crates/aegis-comms", optional = true }
 default = []
 comms = ["aegis-comms"]
 comms-tokio = ["comms", "aegis-comms/platform_tokio_net"]
+
+[workspace.package]
+authors = ["Aegis Team"]
+edition = "2021"
+license = "MIT OR Apache-2.0"
+rust-version = "1.70"

@@ -146,7 +146,7 @@ impl LogEvent {
     /// Add context key-value pair
     pub fn with_context<T: serde::Serialize>(mut self, key: &str, value: T) -> AegisResult<Self> {
         let json_value = serde_json::to_value(value)
-            .map_err(|e| AegisError::Serialization(e))?;
+            .map_err(|e| AegisError::Serialization(e.to_string()))?;
         
         self.context.insert(key.to_string(), json_value);
         Ok(self)
@@ -155,7 +155,7 @@ impl LogEvent {
     /// Serialize to JSON
     pub fn to_json(&self) -> AegisResult<String> {
         serde_json::to_string(self)
-            .map_err(|e| AegisError::Serialization(e))
+            .map_err(|e| AegisError::Serialization(e.to_string()))
     }
 }
 

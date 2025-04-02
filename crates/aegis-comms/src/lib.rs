@@ -22,7 +22,7 @@ pub mod manager;
 // Re-exports for convenience
 pub use protocol::{Message, MessageHeader, MessageType, Priority, AgentId};
 pub use transport::{MessageStream, MessageListener, NetworkConnector, NetworkError, NetworkResult};
-pub use framing::{FramedMessageStream, FramingError, FramingResult};
+pub use framing::{FramedMessageStream, FramingError, FramingResult, StreamWrapper, wrap_boxed_stream};
 pub use manager::{CommsClient, ConnectionHandle, CommsError, CommsResult};
 
 // Conditionally re-export platform-specific constructors
@@ -38,9 +38,9 @@ pub fn create_default_connector() -> std::sync::Arc<dyn NetworkConnector + Send 
 
 /// Create a default CommsClient based on available platform implementations
 #[cfg(feature = "platform_tokio_net")]
-pub fn create_default_client() -> CommsClient {
+pub fn create_default_client() -> manager::CommsClient {
     let connector = create_default_connector();
-    CommsClient::new(connector)
+    manager::CommsClient::new(connector)
 }
 
 /// Crate version

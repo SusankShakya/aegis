@@ -9,8 +9,8 @@ use std::net::SocketAddr;
 use std::sync::Arc;
 use async_trait::async_trait;
 use bytes::{Bytes, BytesMut};
-use tokio::io::{AsyncReadExt, AsyncWriteExt};
-use tokio::net::{TcpListener, TcpStream};
+use tokio_net::io::{AsyncReadExt, AsyncWriteExt};
+use tokio_net::net::{TcpListener, TcpStream};
 
 use crate::transport::{MessageStream, MessageListener, NetworkConnector, NetworkError, NetworkResult};
 

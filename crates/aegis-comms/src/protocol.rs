@@ -167,6 +167,7 @@ pub struct ConsensusVoteMessage {
     /// Hash of the proposal being voted on
     pub proposal_hash: [u8; 32],
     /// Voter signature
+    #[serde(with = "serde_arrays")]
     pub signature: [u8; 64],
 }
 

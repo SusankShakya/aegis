@@ -18,8 +18,8 @@ pub enum AegisError {
 
     /// Serialization/deserialization error
     #[error("Serialization error: {0}")]
-    Serialization(#[from] serde_json::Error),
-
+    Serialization(String),
+    
     /// Platform-specific error
     #[error("Platform error: {0}")]
     Platform(String),
@@ -47,6 +47,18 @@ pub enum AegisError {
     /// Generic error with message
     #[error("{0}")]
     Generic(String),
+}
+
+impl From<serde_json::Error> for AegisError {
+    fn from(err: serde_json::Error) -> Self {
+        AegisError::Serialization(err.to_string())
+    }
+}
+
+impl From<serde_yaml::Error> for AegisError {
+    fn from(err: serde_yaml::Error) -> Self {
+        AegisError::Serialization(err.to_string())
+    }
 }
 
 /// Result type alias using AegisError

@@ -6,16 +6,15 @@
 use std::fmt;
 use std::net::SocketAddr;
 use std::sync::Arc;
-use async_trait::async_trait;
 use bytes::Bytes;
 use serde::{Serialize, de::DeserializeOwned};
 use bincode::{serialize, deserialize};
-use futures::{Future, stream::{Stream, StreamExt}, sink::{Sink, SinkExt}};
+use futures::Future;
 use tokio::sync::{mpsc, oneshot, Mutex};
 use std::collections::HashMap;
 
-use crate::framing::{FramedMessageStream, FramingError};
-use crate::transport::{MessageStream, MessageListener, NetworkConnector, NetworkError, NetworkResult};
+use crate::framing::{FramingError, StreamWrapper, wrap_boxed_stream};
+use crate::transport::{MessageListener, NetworkConnector, NetworkError, NetworkResult};
 use crate::protocol::Message;
 
 /// Error types for the communications API
@@ -166,11 +165,9 @@ impl CommsClient {
     where
         T: Serialize + DeserializeOwned + Send + 'static
     {
-        // Establish the raw connection
+        // Establish the raw connection and wrap with framing
         let stream = self.connector.connect(addr).await?;
-        
-        // Create the framed stream for message delimiting
-        let framed_stream = FramedMessageStream::new(stream);
+        let framed_stream = wrap_boxed_stream(stream);
         
         // Create channels for communication
         let (tx_user, mut rx_network) = mpsc::channel::<T>(32);
@@ -299,7 +296,7 @@ impl CommsClient {
                         match accept_result {
                             Ok((stream, peer_addr)) => {
                                 // Set up framed stream and channels
-                                let framed_stream = FramedMessageStream::new(stream);
+                                let framed_stream = wrap_boxed_stream(stream);
                                 let (tx_user, mut rx_network) = mpsc::channel::<T>(32);
                                 let (tx_network, rx_user) = mpsc::channel::<T>(32);
                                 let (conn_closer_tx, mut conn_closer_rx) = oneshot::channel::<()>();
