@@ -32,3 +32,11 @@ opt-level = 1    # Basic optimizations
 debug = true     # Keep debug info for better test diagnostics
 
 [dependencies]
+# Internal crates
+aegis-core = { path = "crates/aegis-core" }
+aegis-comms = { path = "crates/aegis-comms", optional = true }
+
+[features]
+default = []
+comms = ["aegis-comms"]
+comms-tokio = ["comms", "aegis-comms/platform_tokio_net"]
