@@ -27,6 +27,9 @@ pub mod utils;
 /// Version information
 pub mod version;
 
+/// Logging functionality
+pub mod logging;
+
 /// Common imports
 pub mod prelude;
 
@@ -64,8 +67,12 @@ pub fn init(config: Option<&config::AegisConfig>) -> error::AegisResult<()> {
     // Use provided config or create default
     let config = config.cloned().unwrap_or_default();
     
-    // Initialize the framework
-    // TODO: Add actual initialization logic
+    // Initialize logging subsystem
+    logging::init(&config.logging)?;
+    
+    // Log framework initialization
+    logging::log_info(&format!("Initializing {} v{}", FRAMEWORK_ID, version()));
+    logging::log_info(&format!("Instance ID: {}", instance_id()));
     
     Ok(())
 }

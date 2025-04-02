@@ -55,5 +55,20 @@ pub use crate::version::{
     version_info,
 };
 
+// Re-export logging functions and types
+pub use crate::logging::{
+    LogEvent,
+    log_trace,
+    log_debug,
+    log_info,
+    log_warn,
+    log_error,
+    convert_log_level,
+    severity_to_log_level,
+};
+
 // Constants
-pub use crate::FRAMEWORK_ID; 
+pub use crate::FRAMEWORK_ID;
+
+// Framework functions
+pub use crate::{init, instance_id, version}; 
