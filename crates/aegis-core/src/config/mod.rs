@@ -164,14 +164,14 @@ pub fn load_config(path: &PathBuf) -> AegisResult<AegisConfig> {
     let content = std::fs::read_to_string(path)
         .map_err(|e| AegisError::Io(e))?;
     
-    serde_json::from_str::<AegisConfig>(&content)
-        .map_err(|e| AegisError::Serialization(e.to_string()))
+    serde_json::from_str(&content)
+        .map_err(|e| AegisError::Serialization(e))
 }
 
 /// Save configuration to a file
 pub fn save_config(config: &AegisConfig, path: &PathBuf) -> AegisResult<()> {
     let content = serde_json::to_string_pretty(config)
-        .map_err(|e| AegisError::Serialization(e.to_string()))?;
+        .map_err(|e| AegisError::Serialization(e))?;
     
     std::fs::write(path, content)
         .map_err(|e| AegisError::Io(e))

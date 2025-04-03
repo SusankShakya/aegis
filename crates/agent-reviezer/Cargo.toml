@@ -1,0 +1,38 @@
+[package]
+name = "agent-reviezer"
+version = "0.1.0"
+edition = "2021"
+authors = ["Aegis Team"]
+description = "Review and Audit Agent for the Aegis platform"
+license = "MIT OR Apache-2.0"
+readme = "README.md"
+
+[dependencies]
+# Aegis internal dependencies
+aegis-core = { path = "../aegis-core" }
+aegis-comms = { path = "../aegis-comms" }
+aegis-agent-framework = { path = "../aegis-agent-framework" }
+
+# Async utilities
+async-trait = "0.1"
+futures = "0.3"
+
+# Byte handling
+bytes = "1.4"
+
+# Serialization
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+# Logging
+tracing = "0.1"
+
+# Error handling
+thiserror = "1.0"
+
+# Time utilities
+chrono = "0.4"
+
+[dev-dependencies]
+tokio = { version = "1.28", features = ["full", "test-util", "macros"] }
+mockall = "0.11" 

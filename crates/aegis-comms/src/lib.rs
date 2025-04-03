@@ -1,56 +1,19 @@
 //! Aegis Communications Library
-//!
-//! `aegis-comms` provides platform-agnostic communication infrastructure
-//! for the Aegis framework, enabling agents to exchange messages over
-//! various transport mechanisms.
+//! 
+//! This crate provides the communication layer for the Aegis agent framework,
+//! with platform-agnostic abstractions and implementations for different platforms.
 
-// Protocol definitions
-pub mod protocol;
+mod framing;
+mod manager;
+mod platform;
+mod protocol;
+mod transport;
 
-// Transport abstractions
-pub mod transport;
+pub use framing::{FramedMessageStream, FramingError};
+pub use manager::{CommsClient, CommsError, ConnectionHandle};
+pub use protocol::*;
+pub use transport::{MessageListener, MessageStream, NetworkConnector, NetworkError};
 
-// Message framing
-pub mod framing;
-
-// Platform-specific implementations
-pub mod platform;
-
-// High-level communication API
-pub mod manager;
-
-// Re-exports for convenience
-pub use protocol::{Message, MessageHeader, MessageType, Priority, AgentId};
-pub use transport::{MessageStream, MessageListener, NetworkConnector, NetworkError, NetworkResult};
-pub use framing::{FramedMessageStream, FramingError, FramingResult, StreamWrapper, wrap_boxed_stream};
-pub use manager::{CommsClient, ConnectionHandle, CommsError, CommsResult};
-
-// Conditionally re-export platform-specific constructors
+// Re-export platform-specific implementations when enabled
 #[cfg(feature = "platform_tokio_net")]
-pub use platform::tokio_impl::{connect_tokio, listen_tokio, TokioConnector};
-
-/// Create a default connector based on available platform implementations
-#[cfg(feature = "platform_tokio_net")]
-pub fn create_default_connector() -> std::sync::Arc<dyn NetworkConnector + Send + Sync> {
-    let connector = platform::tokio_impl::TokioConnector::new();
-    std::sync::Arc::new(connector)
-}
-
-/// Create a default CommsClient based on available platform implementations
-#[cfg(feature = "platform_tokio_net")]
-pub fn create_default_client() -> manager::CommsClient {
-    let connector = create_default_connector();
-    manager::CommsClient::new(connector)
-}
-
-/// Crate version
-pub const VERSION: &str = env!("CARGO_PKG_VERSION");
-
-// Tests
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn version_is_set() {
-        assert!(!super::VERSION.is_empty());
-    }
-}
+pub use platform::tokio_impl::{connect_tokio, listen_tokio, TokioConnector, TokioTcpListener};

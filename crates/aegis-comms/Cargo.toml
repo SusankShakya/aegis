@@ -2,38 +2,25 @@
 name = "aegis-comms"
 version = "0.1.0"
 edition = "2021"
-authors = ["Aegis Team"]
-description = "Communication framework for the Aegis platform"
+description = "Communication layer for the Aegis agent framework"
 license = "MIT OR Apache-2.0"
-readme = "README.md"
-
-[dependencies]
-# Aegis internal dependencies
-aegis-core = { path = "../aegis-core" }
-
-# Serialization
-serde = { version = "1.0", features = ["derive"] }
-bincode = "1.3"
-serde_arrays = "0.1"
-
-# Efficient buffer handling
-bytes = "1"
-
-# Async utilities
-futures = "0.3"
-async-trait = "0.1"
-byteorder = "1"
-
-# Basic dependencies needed unconditionally
-tokio = { version = "1", features = ["sync"] }
-
-# Optional Tokio network-based implementation
-tokio-net = { package = "tokio", version = "1", features = ["rt", "net", "io-util", "time"], optional = true }
-tokio-util = { version = "0.7", features = ["codec"], optional = true }
 
 [features]
 default = []
-platform_tokio_net = ["tokio-net", "tokio-util"]
+platform_tokio_net = ["tokio", "tokio-util"]
+
+[dependencies]
+aegis-core = { path = "../aegis-core" }
+serde = { version = "1.0", features = ["derive"] }
+bincode = "1.3"
+bytes = "1.5"
+futures = "0.3"
+async-trait = "0.1"
+byteorder = "1.5"
+
+# Optional dependencies enabled by features
+tokio = { version = "1", features = ["net", "io-util"], optional = true }
+tokio-util = { version = "0.7", features = ["codec"], optional = true }
 
 [dev-dependencies]
-tokio-test = "0.4"
+tokio = { version = "1", features = ["full"] } # Full features for testing
