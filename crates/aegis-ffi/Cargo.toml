@@ -1,0 +1,19 @@
+[package]
+name = "aegis-ffi"
+version = "0.1.0"
+edition = "2021"
+description = "FFI bindings for Aegis Python components"
+authors = ["Aegis Team"]
+license = "MIT OR Apache-2.0"
+
+[dependencies]
+aegis-core = { path = "../aegis-core" }
+pyo3 = { version = "0.18", features = ["auto-initialize"] }
+numpy = "0.18"
+pyo3-numpy = { version = "0.18", features = ["nalgebra"] }
+thiserror = "1.0"
+log = "0.4"
+
+[dev-dependencies]
+tempfile = "3.8"
+env_logger = "0.10"

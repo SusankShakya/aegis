@@ -9,8 +9,13 @@ license = "MIT OR Apache-2.0"
 
 [workspace]
 members = [
-    "aegis",
-    "crates/*"
+    "crates/aegis-core",
+    "crates/aegis-comms",
+    "crates/aegis-agent-framework",
+    "crates/aegis-consensus",
+    "crates/agent-camplit",
+    "crates/agent-reviezer",
+    "crates/aegis-ffi",
 ]
 
 # Optimize for size in release mode (good for embedded/WASM targets)

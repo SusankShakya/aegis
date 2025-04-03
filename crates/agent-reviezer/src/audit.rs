@@ -6,6 +6,7 @@
 use std::collections::HashMap;
 use chrono::{DateTime, Utc};
 use serde::{Serialize, Deserialize};
+use std::time::SystemTime;
 
 use crate::LogEntry;
 
@@ -631,6 +632,82 @@ fn generate_recommendation_id() -> String {
     format!("rec_{}", chrono::Utc::now().timestamp_nanos())
 }
 
+/// Represents a log entry from any agent in the system
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AgentLogEntry {
+    pub timestamp: SystemTime,
+    pub agent_id: String,
+    pub level: LogLevel,
+    pub message: String,
+    pub metadata: Option<serde_json::Value>,
+}
+
+/// Log level for entries
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum LogLevel {
+    Error,
+    Warning,
+    Info,
+    Debug,
+}
+
+/// Represents an audit record after analyzing logs
+#[derive(Debug, Clone)]
+pub struct AuditRecord {
+    pub timestamp: SystemTime,
+    pub agent_id: String,
+    pub findings: Vec<AuditFinding>,
+}
+
+/// Represents a specific finding from log analysis
+#[derive(Debug, Clone)]
+pub struct AuditFinding {
+    pub severity: AuditSeverity,
+    pub description: String,
+    pub related_logs: Vec<AgentLogEntry>,
+}
+
+/// Severity level for audit findings
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum AuditSeverity {
+    Critical,
+    High,
+    Medium,
+    Low,
+    Info,
+}
+
+/// Basic log analyzer that processes agent logs
+pub struct LogAnalyzer {
+    // Configuration and state will be added in future phases
+}
+
+impl LogAnalyzer {
+    pub fn new() -> Self {
+        Self {}
+    }
+
+    /// Analyze a batch of log entries and generate audit findings
+    pub fn analyze_logs(&self, logs: Vec<AgentLogEntry>) -> Vec<AuditFinding> {
+        let mut findings = Vec::new();
+        
+        // Basic analysis: Look for error patterns
+        let error_logs: Vec<_> = logs.iter()
+            .filter(|log| matches!(log.level, LogLevel::Error))
+            .collect();
+        
+        if !error_logs.is_empty() {
+            findings.push(AuditFinding {
+                severity: AuditSeverity::High,
+                description: format!("Found {} error logs", error_logs.len()),
+                related_logs: error_logs.iter().cloned().cloned().collect(),
+            });
+        }
+        
+        findings
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -705,5 +782,23 @@ mod tests {
         assert!(!report.findings.is_empty());
         assert!(!report.recommendations.is_empty());
         assert!(report.risk_score.is_some());
+    }
+
+    #[test]
+    fn test_log_analyzer_basic() {
+        let analyzer = LogAnalyzer::new();
+        let test_logs = vec![
+            AgentLogEntry {
+                timestamp: SystemTime::now(),
+                agent_id: "test_agent".to_string(),
+                level: LogLevel::Error,
+                message: "Test error".to_string(),
+                metadata: None,
+            }
+        ];
+
+        let findings = analyzer.analyze_logs(test_logs);
+        assert!(!findings.is_empty());
+        assert_eq!(findings[0].severity, AuditSeverity::High);
     }
 }
